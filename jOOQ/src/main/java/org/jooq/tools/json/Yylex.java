@@ -656,7 +656,29 @@ class Yylex {
                 }
                 case 44: break;
                 case 2:
-                { Long val=Long.valueOf(yytext()); return new Yytoken(Yytoken.TYPE_VALUE, val);
+                {
+                  // This is a number without a decimal point, but it could be a Double
+                  // Long range: -9223372036854775808 (len: 20) to 9223372036854775807 (len: 19)
+                  String numberText = yytext();
+                  int numberTextLength = numberText.length();
+                  if (numberTextLength < 19) {
+                    // definitely a Long
+                    Long val = Long.valueOf(numberText);
+                    return new Yytoken(Yytoken.TYPE_VALUE, val);
+                  } else if (numberTextLength > 20) {
+                    // definitely a Double
+                    Double val = Double.valueOf(numberText);
+                    return new Yytoken(Yytoken.TYPE_VALUE, val);
+                  } else {
+                    // Could be a Long, could be a Double, let's find out
+                    try {
+                      Long val = Long.valueOf(numberText);
+                      return new Yytoken(Yytoken.TYPE_VALUE, val);
+                    } catch (NumberFormatException e) {
+                      Double val = Double.valueOf(numberText);
+                      return new Yytoken(Yytoken.TYPE_VALUE, val);
+                    }
+                  }
                 }
                 case 45: break;
                 case 18:
